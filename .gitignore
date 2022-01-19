@@ -1,32 +1,13 @@
-# Prerequisites
-*.d
+# CMake related
+build_debug/
+build_release_win64/
+build_release_win32/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# VSCode internal folder
+.vscode/
 
-# Precompiled Headers
-*.gch
-*.pch
+# Auto-generated headers from json files
+*.hxx
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# Debug ROM file output
+*.md
