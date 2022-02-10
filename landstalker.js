@@ -151,23 +151,28 @@ var customMapFormat = {
         
         var folder = getBasePath(fileName);
 
-        var heightmapTileset = tiled.open(folder + "../../resources/heightmap_volumetric.tsx");
+        var heightmapTileset = tiled.open(folder + "../../resources/heightmap_flat.tsx");
         var metaTileset = tiled.open(folder + "../../resources/meta_tiles.tsx");
-        
+        var entitiesTileset = tiled.open(folder + "../../resources/entities.tsx");
+               
         // Read .lsmap file to get map-specific properties
-        var map_metadata = parseJSONFile(fileName);
-        for(key in map_metadata)
-            map.setProperty(key, map_metadata[key]);
+        var mapMetadata = parseJSONFile(fileName);
+        for(key in mapMetadata)
+        {
+            if(key != "entities")
+                map.setProperty(key, mapMetadata[key]);
+        }
      
         // Read layout metadata file to get properties related to map layout (common to all maps using this layout)
-        var map_layout_metadata = parseJSONFile(folder + "layout_metadata.json");
-        for(key in map_layout_metadata)
-            map.setProperty(key, map_layout_metadata[key]);
+        var mapLayoutMetadata = parseJSONFile(folder + "layout_metadata.json");
+        for(key in mapLayoutMetadata)
+            map.setProperty(key, mapLayoutMetadata[key]);
 
         var blockset = buildBlockset(map, fileName);
         map.addTileset(blockset);
         map.addTileset(heightmapTileset);
         map.addTileset(metaTileset);
+        map.addTileset(entitiesTileset);
 
         // Read the map layout files
         var heightmapDataMatrix = matrixFromCSVFile(folder + "heightmap.csv");
@@ -189,6 +194,7 @@ var customMapFormat = {
             }
         }
         backgroundLayerEdit.apply();
+        map.addLayer(backgroundLayer);
 
         var foregroundLayer = new TileLayer("Foreground");
         var foregroundLayerEdit = foregroundLayer.edit();
@@ -201,6 +207,7 @@ var customMapFormat = {
             }
         }
         foregroundLayerEdit.apply();
+        map.addLayer(foregroundLayer);
 
         var heightmapLayer = new TileLayer("Heightmap");
         heightmapLayer.visible = false;
@@ -222,13 +229,9 @@ var customMapFormat = {
                 floorTypesLayerEdit.setTile(x, y, floorTypeTileFromData(heightmapValue, metaTileset));
             }
         }
-
         heightmapLayerEdit.apply();
         flagsLayerEdit.apply();
         floorTypesLayerEdit.apply();
-
-        map.addLayer(backgroundLayer);
-        map.addLayer(foregroundLayer);
 
         var tilemapOffsetX = map.property("tilemap_offset_x") ?? 12;
         var tilemapOffsetY = map.property("tilemap_offset_y") ?? 12;
@@ -240,6 +243,45 @@ var customMapFormat = {
             layer.offset.y = - heightmapOffset.x * 8.0 - heightmapOffset.y * 8.0;
             map.addLayer(layer);
         }
+        
+        var objectsLayer = new ObjectGroup("Entities");
+        objectsLayer.offset.y = 16;
+        objectsLayer.opacity = 0.8;
+        var entityIndex=1;
+        for(entityDesc of mapMetadata.entities)
+        {
+            var entity = new MapObject(entityDesc["entityType"]);
+            entityIndex += 1;
+
+            entity.tile = entitiesTileset.tile(entityDesc["entityTypeId"]);
+            entity.width = 32;
+            entity.height = 48;
+            entity.x = (entityDesc["position"]["x"] - tilemapOffsetX) * 16;
+            entity.y = (entityDesc["position"]["y"] - tilemapOffsetY) * 16;
+            entity.setProperty("position_z", entityDesc["position"]["z"]);
+            entity.setProperty("orientation", entityDesc["orientation"]);
+            entity.setProperty("palette", entityDesc["palette"]);
+            entity.setProperty("speed", entityDesc["speed"]);
+            entity.setProperty("fightable", entityDesc["fightable"]);
+            entity.setProperty("liftable", entityDesc["liftable"]);
+            entity.setProperty("canPassThrough", entityDesc["canPassThrough"]);
+            entity.setProperty("appearAfterPlayerMovedAway", entityDesc["appearAfterPlayerMovedAway"]);
+            entity.setProperty("gravityImmune", entityDesc["gravityImmune"]);
+            entity.setProperty("talkable", entityDesc["talkable"]);
+            entity.setProperty("dialogue", entityDesc["dialogue"] ?? 0);
+            entity.setProperty("behaviorId", entityDesc["behaviorId"]);
+            entity.setProperty("useTilesFromOtherEntity", entityDesc["useTilesFromOtherEntity"]);
+            entity.setProperty("flagUnknown_2_3", entityDesc["flagUnknown_2_3"]);
+            entity.setProperty("flagUnknown_2_4", entityDesc["flagUnknown_2_4"]);
+
+            objectsLayer.addObject(entity);
+        }
+        map.addLayer(objectsLayer);
+
+
+        floorTypesLayer.visible = false;
+        var floorTypesLayerEdit = floorTypesLayer.edit();
+
         
         return map;
     },

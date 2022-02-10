@@ -2,6 +2,7 @@
 
 #include <landstalker_lib/model/world.hpp>
 #include <landstalker_lib/model/map.hpp>
+#include <landstalker_lib/model/entity.hpp>
 #include <landstalker_lib/model/blockset.hpp>
 #include <landstalker_lib/constants/offsets.hpp>
 #include <landstalker_lib/tools/lz77.hpp>
@@ -141,7 +142,14 @@ static void export_map_metadata(const World& world, Map* map, const std::string&
     map_metadata["fall_destination"] = map->fall_destination();
     map_metadata["flag_on_visit"] = std::to_string(map->visited_flag().byte) + ":" + std::to_string((uint16_t)map->visited_flag().bit);
 
-    // TODO: Support std::vector<Entity*> _entities;
+    map_metadata["entities"] = Json::array();
+    for(Entity* entity : map->entities())
+    {
+        Json entity_json = entity->to_json(world);
+        entity_json["entityTypeId"] = entity->entity_type_id();
+        map_metadata["entities"].emplace_back(entity_json);
+    }
+
     // TODO: Support std::map<Map*, Flag> _variants;
     // TODO: Support std::vector<uint16_t> _speaker_ids;
     // TODO: Support std::vector<GlobalEntityMaskFlag> _global_entity_mask_flags;
