@@ -378,7 +378,7 @@ function createBlocksetImage(basePath, blocks, tilesetId, paletteId)
 //                tiled.log("color[" + pixelInTileset + "] = " + color + "--->" + blocksetImage.pixelColor(x,y));
             }
         
-            if(priority) {
+            if(priority && i>0) {
                 for(x=0 ; x<4 ; ++x)
                     for(y=0 ; y<4-x ; ++y)
                         blocksetImage.setPixelColor(tileOriginInBlockset.x + x, tileOriginInBlockset.y + y, "#88FF0000");
