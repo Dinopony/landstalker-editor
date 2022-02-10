@@ -27,7 +27,7 @@ endmacro()
 
 set(SOURCES
         "src/main.cpp"
-        src/main.cpp)
+        src/main.cpp src/exports.cpp src/exports.hpp)
 
 add_executable(landstalker_editor "${SOURCES}")
 target_link_libraries(landstalker_editor landstalker_lib)
